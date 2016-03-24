@@ -6,23 +6,25 @@ import (
 )
 
 type consulClient struct {
-	name   string
 	id     string
 	client *consul.Client
 }
 
 func (c *consulClient) Register(tags []string, port int) error {
-	r := consul.AgentServiceRegistration{
+	r := &consul.AgentServiceRegistration{
 		ID:   c.id,
-		Name: c.name,
+		Name: "command",
 		Tags: tags,
 		Port: port,
 	}
-	_ = r
-	return nil
+	return c.client.Agent().ServiceRegister(r)
 }
 
-func newConsulClient(name string) (*consulClient, error) {
+func (c *consulClient) Deregister() error {
+	return c.client.Agent().ServiceDeregister(c.id)
+}
+
+func newConsulClient() (*consulClient, error) {
 	c, err := consul.NewClient(consul.DefaultConfig())
 	if err != nil {
 		return nil, err
@@ -34,7 +36,6 @@ func newConsulClient(name string) (*consulClient, error) {
 	}
 
 	return &consulClient{
-		name:   name,
 		id:     id,
 		client: c,
 	}, nil

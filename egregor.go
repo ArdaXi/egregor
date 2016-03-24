@@ -54,12 +54,11 @@ type server struct {
 }
 
 type Config struct {
-	Name string
 }
 
 // NewServer initializes a gRPC server with the given config.
 func NewServer(cfg *Config) (Server, error) {
-	c, err := newConsulClient(cfg.Name)
+	c, err := newConsulClient()
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +105,7 @@ func (s *server) Run() error {
 	if err := s.consul.Register(commands, port); err != nil {
 		return err
 	}
+	defer s.consul.Deregister()
 
 	return s.grpcServer.Serve(ln)
 }
