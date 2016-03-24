@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"strings"
 
 	"github.com/ardaxi/egregor/pb"
@@ -44,8 +45,9 @@ func MsgHandler(b *Bot, m *irc.Message) {
 }
 
 func CommandHandler(b *Bot, nick, channel string, args []string) {
-	addr, err := b.consul.getServiceAddr(args[0])
+	addr, err := b.consul.getServiceAddr(args[1])
 	if err != nil {
+		log.Println(err)
 		b.writer.Encode(&irc.Message{
 			Command:  irc.PRIVMSG,
 			Params:   []string{channel},
@@ -65,8 +67,8 @@ func CommandHandler(b *Bot, nick, channel string, args []string) {
 
 	r, err := c.DoCommand(context.Background(), &pb.CommandRequest{
 		Nick:    nick,
-		Command: args[0],
-		Args:    args[1:],
+		Command: args[1],
+		Args:    args[2:],
 	})
 	if err != nil {
 		// TODO: retry mechanics
