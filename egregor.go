@@ -64,7 +64,7 @@ func NewServer(cfg *Config) (Server, error) {
 	}
 
 	s := &server{
-		commandServer: &commandServer{},
+		commandServer: newCommandServer(),
 		grpcServer:    grpc.NewServer(),
 		config:        cfg,
 		consul:        c,
