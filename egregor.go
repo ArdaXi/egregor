@@ -72,6 +72,7 @@ func newCommandServer() *commandServer {
 }
 
 type Server interface {
+	Consul() *ConsulClient
 	GetKey(key string) ([]byte, error)
 	Handle(command string, handler CommandHandler)
 	HandleFunc(command string, usage []string, handler func(context.Context, *pb.CommandRequest) (*pb.CommandResponse, error))
@@ -79,10 +80,10 @@ type Server interface {
 }
 
 type server struct {
+	consul        *ConsulClient
 	commandServer *commandServer
 	grpcServer    *grpc.Server
 	config        *Config
-	consul        *ConsulClient
 }
 
 type Config struct {
@@ -112,6 +113,11 @@ func (s *server) getCommands() (keys []string) {
 		keys = append(keys, k)
 	}
 	return
+}
+
+// Consul returns the ConsulClient for this server
+func (s *server) Consul() *ConsulClient {
+	return s.consul
 }
 
 // GetKey retrieves a key from the Consul Key/Value store.
