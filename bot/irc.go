@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/ardaxi/egregor"
 	"github.com/sorcix/irc"
 )
 
@@ -16,10 +17,10 @@ type Bot struct {
 	reader  *irc.Decoder
 	writer  *irc.Encoder
 	conn    net.Conn
-	consul  *consulClient
+	consul  *egregor.ConsulClient
 }
 
-func NewBot(server, name, channel string, consul *consulClient) *Bot {
+func NewBot(server, name, channel string, consul *egregor.ConsulClient) *Bot {
 	return &Bot{
 		server:  server,
 		name:    name,

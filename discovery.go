@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/go-uuid"
 )
 
-type consulClient struct {
+type ConsulClient struct {
 	id     string
 	client *consul.Client
 	sigint chan os.Signal
 }
 
-func (c *consulClient) Register(tags []string, port int) error {
+func (c *ConsulClient) Register(tags []string, port int) error {
 	agent := c.client.Agent()
 
 	r := &consul.AgentServiceRegistration{
@@ -47,11 +47,11 @@ func (c *consulClient) Register(tags []string, port int) error {
 	return agent.ServiceRegister(r)
 }
 
-func (c *consulClient) Deregister() error {
+func (c *ConsulClient) Deregister() error {
 	return c.client.Agent().ServiceDeregister(c.id)
 }
 
-func (c *consulClient) GetKey(key string) ([]byte, error) {
+func (c *ConsulClient) GetKey(key string) ([]byte, error) {
 	kv := c.client.KV()
 
 	pair, _, err := kv.Get(key, nil)
@@ -65,7 +65,24 @@ func (c *consulClient) GetKey(key string) ([]byte, error) {
 	return pair.Value, nil
 }
 
-func newConsulClient() (*consulClient, error) {
+func (c *ConsulClient) GetServiceAddr(command string) (string, error) {
+	svcs, _, err := c.client.Catalog().Service("command", command, nil)
+	if err != nil {
+		return "", err
+	}
+
+	if len(svcs) == 0 {
+		return "", fmt.Errorf("Nil response.")
+	}
+
+	svc := svcs[0]
+	addr := svc.Address
+	port := svc.ServicePort
+
+	return fmt.Sprintf("%v:%v", addr, port), nil
+}
+
+func NewConsulClient() (*ConsulClient, error) {
 	c, err := consul.NewClient(consul.DefaultConfig())
 	if err != nil {
 		return nil, err
@@ -76,7 +93,7 @@ func newConsulClient() (*consulClient, error) {
 		return nil, err
 	}
 
-	return &consulClient{
+	return &ConsulClient{
 		id:     id,
 		client: c,
 		sigint: make(chan os.Signal, 1),

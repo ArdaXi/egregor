@@ -82,7 +82,7 @@ type server struct {
 	commandServer *commandServer
 	grpcServer    *grpc.Server
 	config        *Config
-	consul        *consulClient
+	consul        *ConsulClient
 }
 
 type Config struct {
@@ -90,7 +90,7 @@ type Config struct {
 
 // NewServer initializes a gRPC server with the given config.
 func NewServer(cfg *Config) (Server, error) {
-	c, err := newConsulClient()
+	c, err := NewConsulClient()
 	if err != nil {
 		return nil, err
 	}

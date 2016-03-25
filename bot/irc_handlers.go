@@ -45,7 +45,7 @@ func MsgHandler(b *Bot, m *irc.Message) {
 }
 
 func CommandHandler(b *Bot, nick, channel string, args []string) {
-	addr, err := b.consul.getServiceAddr(args[1])
+	addr, err := b.consul.GetServiceAddr(args[1])
 	if err != nil {
 		log.Println(err)
 		b.writer.Encode(&irc.Message{
