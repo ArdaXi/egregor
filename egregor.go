@@ -41,6 +41,7 @@ func newCommandServer() *commandServer {
 }
 
 type Server interface {
+	GetKey(key string) ([]byte, error)
 	Handle(command string, handler CommandHandler)
 	HandleFunc(command string, handler func(context.Context, *pb.CommandRequest) (*pb.CommandResponse, error))
 	Run() error
@@ -80,6 +81,11 @@ func (s *server) getCommands() (keys []string) {
 		keys = append(keys, k)
 	}
 	return
+}
+
+// GetKey retrieves a key from the Consul Key/Value store.
+func (s *server) GetKey(key string) ([]byte, error) {
+	return s.consul.GetKey(key)
 }
 
 // Handle registers the handler for the given command.
