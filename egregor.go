@@ -1,5 +1,7 @@
 package egregor
 
+//go:generate protoc -I ./pb ./pb/egregor.proto --go_out=plugins=grpc:pb
+
 import (
 	"fmt"
 	"net"
@@ -12,14 +14,20 @@ import (
 // A CommandHandler responds to a command
 type CommandHandler interface {
 	Handle(context.Context, *pb.CommandRequest) (*pb.CommandResponse, error)
+	Usage() []string
 }
 
 type defaultHandler struct {
 	handler func(ctx context.Context, req *pb.CommandRequest) (*pb.CommandResponse, error)
+	usage   []string
 }
 
 func (h *defaultHandler) Handle(ctx context.Context, req *pb.CommandRequest) (*pb.CommandResponse, error) {
 	return h.handler(ctx, req)
+}
+
+func (h *defaultHandler) Usage() []string {
+	return h.usage
 }
 
 type commandServer struct {
@@ -36,6 +44,29 @@ func (s *commandServer) DoCommand(ctx context.Context, req *pb.CommandRequest) (
 	return handler.Handle(ctx, req)
 }
 
+func (s *commandServer) GetUsage(ctx context.Context, req *pb.HelpRequest) (*pb.CommandResponse, error) {
+	cmd := req.Command
+	handler, ok := s.handlers[cmd]
+	if !ok {
+		return nil, fmt.Errorf("Unknown command: %s", cmd)
+	}
+
+	return &pb.CommandResponse{Reply: handler.Usage()}, nil
+}
+
+func (s *commandServer) GetCommands(ctx context.Context, req *pb.Empty) (*pb.CommandList, error) {
+	entries := []*pb.CommandEntry{}
+	for command, handler := range s.handlers {
+		entry := &pb.CommandEntry{
+			Command:     command,
+			Description: handler.Usage()[0],
+		}
+		entries = append(entries, entry)
+	}
+
+	return &pb.CommandList{List: entries}, nil
+}
+
 func newCommandServer() *commandServer {
 	return &commandServer{handlers: make(map[string]CommandHandler)}
 }
@@ -43,7 +74,7 @@ func newCommandServer() *commandServer {
 type Server interface {
 	GetKey(key string) ([]byte, error)
 	Handle(command string, handler CommandHandler)
-	HandleFunc(command string, handler func(context.Context, *pb.CommandRequest) (*pb.CommandResponse, error))
+	HandleFunc(command string, usage []string, handler func(context.Context, *pb.CommandRequest) (*pb.CommandResponse, error))
 	Run() error
 }
 
@@ -94,9 +125,9 @@ func (s *server) Handle(command string, handler CommandHandler) {
 }
 
 // HandleFunc registers the handler function for the given command.
-func (s *server) HandleFunc(command string,
+func (s *server) HandleFunc(command string, usage []string,
 	handler func(context.Context, *pb.CommandRequest) (*pb.CommandResponse, error)) {
-	s.commandServer.handlers[command] = &defaultHandler{handler: handler}
+	s.commandServer.handlers[command] = &defaultHandler{handler: handler, usage: usage}
 }
 
 // Run allocates a free TCP port, registers the commands in Consul and starts the gRPC service.

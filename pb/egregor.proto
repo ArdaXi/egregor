@@ -4,6 +4,8 @@ package pb;
 
 service Command {
   rpc DoCommand (CommandRequest) returns (CommandResponse) {}
+  rpc GetUsage (HelpRequest) returns (CommandResponse) {}
+  rpc GetCommands (Empty) returns (CommandList) {}
 }
 
 message CommandRequest {
@@ -14,4 +16,19 @@ message CommandRequest {
 
 message CommandResponse {
   repeated string reply = 1;
+}
+
+message HelpRequest {
+  string command = 1;
+}
+
+message Empty {}
+
+message CommandList {
+  repeated CommandEntry list = 1;
+}
+
+message CommandEntry {
+  string command = 1;
+  string description = 2;
 }
