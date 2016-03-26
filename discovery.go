@@ -82,6 +82,21 @@ func (c *ConsulClient) GetServiceAddr(command string) (string, error) {
 	return fmt.Sprintf("%v:%v", addr, port), nil
 }
 
+func (c *ConsulClient) GetCommands() (map[string][]string, error) {
+	svcs, _, err := c.client.Catalog().Service("command", "", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string][]string)
+	for _, svc := range svcs {
+		addr := fmt.Sprintf("%v:%v", svc.Address, svc.ServicePort)
+		res[addr] = svc.ServiceTags
+	}
+
+	return res, nil
+}
+
 func (c *ConsulClient) GetLoggers() ([]string, error) {
 	svcs, _, err := c.client.Catalog().Service("logHandler", "", nil)
 	if err != nil {
