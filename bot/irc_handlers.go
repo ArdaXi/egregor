@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"strings"
+	"time"
 
 	"github.com/ardaxi/egregor/pb"
 	"github.com/sorcix/irc"
@@ -38,10 +39,21 @@ func MsgHandler(b *Bot, m *irc.Message) {
 	nick := m.Prefix.Name
 	channel := m.Params[0]
 	msg := m.Trailing
+	go Log(b, nick, channel, msg, time.Now())
 	args := strings.Fields(msg)
 	if strings.TrimRight(args[0], ",:") == b.name {
 		go CommandHandler(b, nick, channel, args)
 	}
+}
+
+func Log(b *Bot, nick, channel, body string, stamp time.Time) {
+	msg := &pb.Message{
+		Nick:    nick,
+		Channel: channel,
+		Body:    body,
+		Time:    stamp.Unix(),
+	}
+	b.log <- msg
 }
 
 func CommandHandler(b *Bot, nick, channel string, args []string) {

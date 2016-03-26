@@ -82,6 +82,21 @@ func (c *ConsulClient) GetServiceAddr(command string) (string, error) {
 	return fmt.Sprintf("%v:%v", addr, port), nil
 }
 
+func (c *ConsulClient) GetLoggers() ([]string, error) {
+	svcs, _, err := c.client.Catalog().Service("logHandler", "", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res := []string{}
+
+	for _, svc := range svcs {
+		res = append(res, fmt.Sprintf("%v:%v", svc.Address, svc.ServicePort))
+	}
+
+	return res, nil
+}
+
 func NewConsulClient() (*ConsulClient, error) {
 	c, err := consul.NewClient(consul.DefaultConfig())
 	if err != nil {

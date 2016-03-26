@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ardaxi/egregor"
+	"github.com/ardaxi/egregor/pb"
 	"github.com/sorcix/irc"
 )
 
@@ -18,6 +19,7 @@ type Bot struct {
 	writer  *irc.Encoder
 	conn    net.Conn
 	consul  *egregor.ConsulClient
+	log     chan *pb.Message
 }
 
 func NewBot(server, name, channel string, consul *egregor.ConsulClient) *Bot {
@@ -27,6 +29,7 @@ func NewBot(server, name, channel string, consul *egregor.ConsulClient) *Bot {
 		channel: channel,
 		data:    make(chan *irc.Message, 10),
 		consul:  consul,
+		log:     make(chan *pb.Message, 10),
 	}
 }
 
