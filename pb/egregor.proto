@@ -8,6 +8,10 @@ service Command {
   rpc GetCommands (Empty) returns (CommandList) {}
 }
 
+service Log {
+  rpc Log (stream LogResponse) returns (stream LogMessage) {}
+}
+
 message CommandRequest {
   string nick = 1;
   string command = 2;
@@ -31,4 +35,14 @@ message CommandList {
 message CommandEntry {
   string command = 1;
   string description = 2;
+}
+
+message LogMessage {
+  int64 time = 1;
+  string nick = 2;
+  string body = 3;
+}
+
+message LogResponse {
+  string reply = 1;
 }
