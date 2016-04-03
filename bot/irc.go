@@ -31,7 +31,11 @@ func NewBot(server, name, channel string, consul *egregor.ConsulClient) *Bot {
 }
 
 func (b *Bot) Connect() error {
-	conn, err := net.Dial("tcp", b.server)
+	dialer := &net.Dialer{
+		Timeout:   5 * time.Second,
+		DualStack: true,
+	}
+	conn, err := dialer.Dial("tcp", b.server)
 	if err != nil {
 		return err
 	}
